@@ -22,10 +22,10 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # If you have trained weights, replace with your path:
 # WEIGHTS_PATH = ROOT / "runs" / "human_crowd_yolov8s" / "weights" / "best.pt"
-WEIGHTS_PATH = ROOT / "yolov8n.pt"
+WEIGHTS_PATH = ROOT / "best.pt"
 
 # On COCO models, class id 0 = person.
-PERSON_CLASS_ID = 0
+PERSON_CLASS_ID = 1
 
 app = FastAPI(title="Pedestrian Video Demo")
 app.add_middleware(

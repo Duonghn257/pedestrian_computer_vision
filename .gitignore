@@ -1,0 +1,50 @@
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+ENV/
+
+# Logs / Runtime
+*.log
+*.pid
+
+# Build / Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Model checkpoints / weights
+*.pt
+*.pth
+*.onnx
+*.engine
+*.ckpt
+
+# Generated outputs and artifacts
+outputs/
+runs/
+debug_visualizations/
+uploads/
+report_outputs.zip
+
+# Local datasets / downloads (large, reproducible externally)
+roboflow_downloads/
+roboflow_downloads_person_only/
+data_video/
+

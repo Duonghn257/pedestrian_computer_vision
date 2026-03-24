@@ -1,0 +1,10 @@
+ultralytics>=8.0.0
+opencv-python>=4.8.0.74
+matplotlib>=3.7.0
+Pillow>=10.0.0
+pyyaml>=6.0
+tqdm>=4.66.0
+pandas>=2.0.0
+fastapi>=0.115.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9

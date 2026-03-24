@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pedestrian Detection Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 24px auto;
+        padding: 0 16px;
+      }
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+      .muted {
+        color: #666;
+      }
+      .metrics p {
+        margin: 6px 0;
+      }
+      video {
+        width: 100%;
+        max-height: 520px;
+        background: #111;
+      }
+      button {
+        padding: 8px 14px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Upload Video -> Detect Person Only</h2>
+
+    <div class="card">
+      <input id="videoInput" type="file" accept="video/*" />
+      <button id="uploadBtn">Upload & Process</button>
+      <p id="status" class="muted"></p>
+    </div>
+
+    <div class="card">
+      <h3>Output Video</h3>
+      <video id="outVideo" controls></video>
+    </div>
+
+    <div class="card metrics">
+      <h3>Person Count</h3>
+      <p><strong>Max người trong 1 frame:</strong> <span id="maxPerson">-</span></p>
+      <p><strong>Tổng số detections:</strong> <span id="totalDetections">-</span></p>
+      <p><strong>Số frame:</strong> <span id="frames">-</span></p>
+      <p><strong>FPS xử lý:</strong> <span id="procFps">-</span></p>
+    </div>
+
+    <script>
+      const videoInput = document.getElementById("videoInput");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const statusEl = document.getElementById("status");
+      const outVideo = document.getElementById("outVideo");
+      const maxPerson = document.getElementById("maxPerson");
+      const totalDetections = document.getElementById("totalDetections");
+      const frames = document.getElementById("frames");
+      const procFps = document.getElementById("procFps");
+
+      uploadBtn.addEventListener("click", async () => {
+        const file = videoInput.files?.[0];
+        if (!file) {
+          alert("Chọn 1 video trước.");
+          return;
+        }
+
+        uploadBtn.disabled = true;
+        statusEl.textContent = "Đang upload và xử lý video...";
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(txt);
+          }
+
+          const data = await res.json();
+          outVideo.src = data.video_url;
+          outVideo.load();
+
+          const m = data.metrics || {};
+          maxPerson.textContent = m.max_person_per_frame ?? "-";
+          totalDetections.textContent = m.total_person_detections ?? "-";
+          frames.textContent = m.frames ?? "-";
+          procFps.textContent =
+            typeof m.process_fps === "number" ? m.process_fps.toFixed(2) : "-";
+
+          statusEl.textContent = "Xử lý xong.";
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = "Lỗi: " + (err?.message || "unknown");
+        } finally {
+          uploadBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
+

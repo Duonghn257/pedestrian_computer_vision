@@ -1,0 +1,13 @@
+names:
+- head
+- person
+nc: 2
+roboflow:
+  license: CC BY 4.0
+  project: human-crowd-vbdc9
+  url: https://universe.roboflow.com/new-workspace-5uval/human-crowd-vbdc9/dataset/1
+  version: 1
+  workspace: new-workspace-5uval
+test: ../test/images
+train: ../train/images
+val: ../valid/images

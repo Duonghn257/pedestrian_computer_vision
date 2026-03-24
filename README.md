@@ -1,166 +1,100 @@
-# Report Requirements (YOLOv8 Person Detection)
+# Pedestrian Detection Demo (YOLOv8 + FastAPI + Frontend)
 
-## 1. Muc tieu de tai (Tong quan de dua vao Chuong 1)
-- Bai toan: phat hien nguoi di bo (class `person`) tren video duong pho thuc te.
-- Huong tiep can: xay dung pipeline tu video dau vao -> infer YOLOv8 -> ve bounding box -> xuat video dau ra.
-- Tieu chi danh gia (de thuc hien theo Chuong 4):
-  - do chinh xac (mAP@0.5, mAP@0.5:0.95, Precision/Recall/F1)
-  - toc do (FPS tren video)
+Project demo phát hiện người (`person`) trên video, xử lý ở backend bằng YOLOv8 và hiển thị kết quả trên frontend.
 
-## 2. Scope code & demo (can doi chieu voi `code_and_demo.pdf`)
-> Luu y: Trong moi truong hien tai, `code_and_demo.pdf` khong trich duoc text (co the la scan/anh). Vi vay doan ben duoi la checklist theo template/report da co trong `ComputerVision_Report.pdf`. Neu `code_and_demo.pdf` co yeu cau cu the hon, vui long gui ban co OCR hoac noi dung text de minh chinh lai 100%.
+## 1) Tổng quan hệ thống
 
-### 2.1. Code deliverables (yeu cau toi thieu de co demo chay duoc)
-- [ ] Script/command huan luyen model YOLOv8 (model backbone tuong ung: `yolov8m` hoac tuong duong) tren dataset da chuan hoa theo dinh dang YOLO.
-- [ ] Script/command infer tren 1 anh/1 frame de kiem tra nhanh.
-- [ ] Pipeline infer tren video:
-  - doc video dau vao (OpenCV, frame-by-frame)
-  - chay model YOLOv8
-  - ap dung NMS (neu framework khong dam bao)
-  - render bounding box + confidence score
-  - xuat video `mp4`
-- [ ] Log/ket qua sinh ra tu training (de dua vao Chuang 4):
-  - bang metrics tren test/val (mAP, Precision/Recall, F1)
-  - bieu do loss theo epoch (training convergence)
+- **Backend**: `FastAPI` (`backend_app.py`)
+- **Frontend**: HTML tĩnh (`frontend/index.html`)
+- **Model infer**: YOLOv8 (Ultralytics)
+- **Luồng xử lý**:
+  1. Upload video qua UI
+  2. Backend infer từng frame
+  3. Vẽ bounding box class `person`
+  4. Xuất video output và trả về metrics
 
-### 2.2. Demo requirements (nhung thu hoi dong can thay)
-- [ ] Demo co it nhat 1 video dau vao tu duong pho thuc te va 1 video dau ra co ve bounding box `person`.
-- [ ] Demo the hien duoc FPS (hoac thoi gian infer trung binh) tren video.
-- [ ] Demo co vai truong hop minh hoa:
-  - thanh cong (detection dung)
-  - that bai (false positive / false negative do toi, che khuat)
-- [ ] Neu co them: giai thich tuy chon (img size, confidence threshold, IoU threshold) dung trong infer.
+## 2) Yêu cầu môi trường
 
-## 3. Du lieu can chuan bi cho Chuang 3: Data & Experimental Setup
+- Python 3.10+ (khuyến nghị dùng virtualenv)
+- pip
 
-### 3.1. Tap du lieu (Dataset)
-Ben trong bao cao, phan nay can co:
-- [ ] Gioi thieu ro nguon dataset (vi du: CrowdHuman / MOT / COCO hoac tap tu tuyen chinh).
-- [ ] Neu ro muc tieu label:
-  - Chi lay `person` (neu dataset goc co nhieu class thi phai loc/chien luoc label).
-- [ ] Thong ke dataset:
-  - so luong anh/video frames
-  - ti le class `person` / so doi tuong annotated
-  - phan bo theo dieu kien: che khuat, kich thuoc nho (xa), anh sang thay doi, goc chuyen dong
-- [ ] Dataset split:
-  - `train/val/test` (ty le va ly do chon)
-  - danh sach file hoac mo ta cach split (neu split theo video thi ghi ro nguyen tac)
+## 3) Cài đặt
 
-### 3.2. Tien xu ly du lieu & Data Augmentation
-Trong bao cao, phai mo ta duoc:
-- [ ] Chuyen doi dinh dang nhan (labels) sang chuan YOLO:
-  - YOLO label: `class x_center y_center w h` (don vi normalized [0..1])
-  - cach xac dinh cac gia tri tu bounding box goc (x1,y1,x2,y2) -> (xc,yc,w,h)
-- [ ] Data Augmentation (ghi ro da dung nhung gi va vi sao):
-  - Mosaic
-  - MixUp
-  - Random Perspective
-  - (Neu co) Random Flip/HSV/Jitter tu cau hinh YOLOv8
-- [ ] Neu co cau hinh custom augmentation (neu dung), ghi ro tham so (bang hoac anh chup cau hinh).
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-### 3.3. Thiet lap moi truong & Hyperparameters (Hardware + Training)
-Can liet ke day du de co the tai lap (reproducible):
-- [ ] Mo ta moi truong:
-  - CPU, RAM
-  - GPU (model), CUDA version (neu co)
-  - he dieu hanh
-  - version YOLOv8/Ultralytics (neu biet)
-- [ ] Hyperparameters training:
-  - model: `yolov8m` (hoac bien the da chon)
-  - image size (`imgsz`)
-  - number of epochs
-  - batch size
-  - optimizer (vi du: SGD/AdamW neu YOLOv8 da set)
-  - learning rate schedule (warmup/cosine/step neu co)
-  - learning rate
-  - confidence threshold, IoU threshold (cho inference, va neu co trong training thi ghi)
-  - early stopping (neu co)
-- [ ] Cac file/ket qua sinh ra:
-  - weights/checkpoints (best/last)
-  - file log metrics
-  - bieu do loss theo epoch (de dua vao Chuang 4)
+## 4) Chuẩn bị dữ liệu và artifacts
 
-## 4. Du lieu can chuan bi cho Chuang 4: Evaluation Results & Analysis
+### Video input
 
-### 4.1. Evaluation Metrics
-Bao cao can giai thich va dua con so tu training:
-- [ ] IoU
-- [ ] Precision, Recall, F1-score
-- [ ] mAP@0.5 va mAP@0.5:0.95
-- [ ] FPS (chi so quan trong cho video)
+Tải video mẫu tại:
 
-### 4.2. Phan tich qua trinh huan luyen
-- [ ] Cac bieu do/tap anh minh hoa su hoi tu (convergence) theo epoch:
-  - training loss (va/hoac val loss neu co)
-  - mAP theo epoch (neu framework cung cap)
-- [ ] Nhan xet:
-  - epoch nao dat diem tot (best checkpoint)
-  - co vuot/dao dong khong (overfitting/underfitting) va giai thich theo du lieu
+- [Google Drive - data_video folder](https://drive.google.com/drive/folders/10WpOzojaXPXtJP-oA1IJJqUhBBA0r5Hb?usp=sharing)
 
-### 4.3. Ket qua danh gia tren test/val
-- [ ] Bang tong hop metrics:
-  - mAP@0.5
-  - mAP@0.5:0.95
-  - Precision, Recall, F1
-  - (Neu co) so truong hop detect dung/sai tren sample video
-- [ ] Neu co nhieu run/bieu do so sanh:
-  - ghi ro config khac nhau giua cac run (img size, epochs, confidence, augmentation)
-  - ket luan run nao tot hon va ly do
+Sau khi tải xong, đặt vào thư mục:
 
-### 4.4. Failure cases (Thanh cong & that bai)
-- [ ] It nhat 5-10 hinh/clip khac nhau cho:
-  - false positives (nhan sai)
-  - false negatives (bong bo nguoi)
-- [ ] Mo ta ly do that bai duoi dang bullet trong bao cao:
-  - toi (low light)
-  - che khuat (occlusion)
-  - nguoi qua nho/xa
-  - blur do van toc/giong rung
+- `data_video/`
 
-## 5. Du lieu can chuan bi cho Chuang 5: Video Processing Pipeline
+### Training runs (nếu cần đối chiếu kết quả)
 
-### 5.1. Luong xu ly video dau vao (Input)
-- [ ] Mo ta cach doc video:
-  - OpenCV `VideoCapture`
-  - doc tung frame theo thu tu (frame-by-frame)
-  - xu ly truong hop loi/het frame
-- [ ] Neu co resize/format truoc infer, ghi ro:
-  - cach scale anh
-  - giu ti le (letterbox) neu dung
+Tải `runs.zip` tại:
 
-### 5.2. Noi suy (neu co) & du doan (Inference)
-- [ ] Mo ta luong infer:
-  - dua frame vao YOLOv8 da huan luyen (best checkpoint)
-  - thuc hien post-processing:
-    - NMS de loai bo bbox trung lap
-  - chon nguong confidence
-- [ ] Neu co noi suy giua cac frame (vi du: bo qua frame, interpolate), ghi ro:
-  - stride/skip frame
-  - cach interpolate va ly do
+- [Google Drive - runs.zip](https://drive.google.com/file/d/1RSXUSC3nfeFnmaGe9s19gTBYxpgXnsQ8/view?usp=sharing)
 
-### 5.3. Render video dau ra (Output)
-- [ ] Mo ta render:
-  - ve bounding box
-  - gan nhan `person`
-  - gan confidence score (neu yeu cau)
-  - xuat video mp4 voi FPS/codec phu hop
-- [ ] Dua vao bao cao:
-  - 3-6 khung hinh (frames) minh hoa truoc/sau detect
-  - link hoac mo ta video demo da xuat
+Giải nén vào root project để có cấu trúc `runs/...`.
 
-## 6. Ket luan & Huong phat trien
-- [ ] Ket luan: tom tat nhung gi da lam duoc:
-  - ly thuyet YOLOv8
-  - training dat yeu cau (mAP/FPS)
-  - xuat video prediction co cha luc tot
-- [ ] Huong phat trien:
-  - toi uu model nhe hon (quantization, pruning)
-  - ket hop tracking (DeepSORT / BoT-SORT) de theo doi ID
+### Model đã fine-tune (`yolov8n.pt`)
 
-## 7. Tai lieu tham khao (Reference)
-- [ ] Liet ke:
-  - Papers bai bao khoa hoc phu hop
-  - Dataset paper/Trang web chinh thong
-  - Repo/implementation YOLOv8 (Ultralytics) va cac link
-- [ ] Dung dinh dang cite theo IEEE hoac APA (ghi ro chinh xac format)
+Model fine-tune bạn cung cấp tại:
+
+- [Google Drive - yolov8n.pt](https://drive.google.com/file/d/1JGQLzQ-SABQRm1xuSsUxK0cCSZIumk2d/view?usp=sharing)
+
+Cách dùng:
+
+- Tải file từ Drive về.
+- Đặt file `yolov8n.pt` ở **thư mục gốc project** (cùng cấp với `backend_app.py`).
+- Chạy backend là dùng đúng model fine-tune, không cần sửa code.
+
+## 5) Chọn model để infer
+
+Trong `backend_app.py` hiện tại:
+
+```python
+WEIGHTS_PATH = ROOT / "yolov8n.pt"
+```
+
+## 6) Chạy project
+
+```bash
+uvicorn backend_app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Mở trình duyệt:
+
+- [http://localhost:8000](http://localhost:8000)
+
+Sau đó:
+
+1. Chọn video (`.mp4`, `.mov`, `.avi`, `.mkv`)
+2. Upload để backend xử lý
+3. Xem video output và metrics trả về
+
+## 7) API chính
+
+- `POST /api/upload`: upload video và xử lý detect person
+- `GET /api/video/{filename}`: trả video output
+
+## 8) Output tạo ra
+
+- Video upload tạm: `uploads/`
+- Video đã xử lý: `outputs/`
+
+## 9) Ghi chú
+
+- Class detect đang lock là `person` (`PERSON_CLASS_ID = 0`).
+- Nếu model/đường dẫn weights không tồn tại, API sẽ báo lỗi.
+- Đã có `.gitignore` để bỏ qua các thư mục output, cache, dataset lớn và weights.
 
